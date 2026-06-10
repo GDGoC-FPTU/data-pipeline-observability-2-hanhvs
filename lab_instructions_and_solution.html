@@ -1,0 +1,814 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Day 10 Lab: Hướng Dẫn Giải Bài & Quan Sát Dữ Liệu</title>
+    <meta name="description" content="Hướng dẫn chi tiết cách hoàn thành bài Lab Day 10 về Data Pipeline & Data Observability.">
+    <!-- Google Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700&family=JetBrains+Mono:wght@400;500;700&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --bg-primary: #080d1a;
+            --bg-secondary: #0f172a;
+            --bg-card: rgba(30, 41, 59, 0.7);
+            --border-color: rgba(255, 255, 255, 0.08);
+            --accent-cyan: #06b6d4;
+            --accent-purple: #8b5cf6;
+            --accent-green: #10b981;
+            --accent-amber: #f59e0b;
+            --accent-rose: #f43f5e;
+            --text-main: #f8fafc;
+            --text-muted: #94a3b8;
+            --glass-bg: rgba(15, 23, 42, 0.4);
+            --glass-blur: blur(12px);
+            --transition-speed: 0.3s;
+        }
+
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+        }
+
+        body {
+            font-family: 'Outfit', sans-serif;
+            background-color: var(--bg-primary);
+            color: var(--text-main);
+            line-height: 1.6;
+            overflow-x: hidden;
+            background-image: 
+                radial-gradient(circle at 10% 20%, rgba(99, 102, 241, 0.08) 0%, transparent 40%),
+                radial-gradient(circle at 90% 80%, rgba(6, 182, 212, 0.08) 0%, transparent 40%);
+            background-attachment: fixed;
+        }
+
+        /* Header section */
+        header {
+            padding: 4rem 2rem 2rem 2rem;
+            text-align: center;
+            position: relative;
+        }
+
+        header::after {
+            content: '';
+            position: absolute;
+            bottom: 0;
+            left: 50%;
+            transform: translateX(-50%);
+            width: 150px;
+            height: 4px;
+            background: linear-gradient(90deg, var(--accent-cyan), var(--accent-purple));
+            border-radius: 2px;
+        }
+
+        h1 {
+            font-size: 2.8rem;
+            font-weight: 700;
+            background: linear-gradient(135deg, #fff 30%, #a5b4fc 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            margin-bottom: 0.5rem;
+            letter-spacing: -0.02em;
+        }
+
+        .subtitle {
+            font-size: 1.2rem;
+            color: var(--text-muted);
+            font-weight: 300;
+            max-width: 600px;
+            margin: 0 auto;
+        }
+
+        /* Main Container */
+        main {
+            max-width: 1200px;
+            margin: 2rem auto;
+            padding: 0 1.5rem 4rem 1.5rem;
+        }
+
+        /* Tab Navigation */
+        .tab-nav {
+            display: flex;
+            justify-content: center;
+            gap: 1rem;
+            margin-bottom: 2.5rem;
+            flex-wrap: wrap;
+            background: var(--glass-bg);
+            backdrop-filter: var(--glass-blur);
+            padding: 0.6rem;
+            border-radius: 50px;
+            border: 1px solid var(--border-color);
+        }
+
+        .tab-btn {
+            background: transparent;
+            border: none;
+            padding: 0.8rem 1.8rem;
+            border-radius: 50px;
+            color: var(--text-muted);
+            cursor: pointer;
+            font-family: 'Outfit', sans-serif;
+            font-weight: 500;
+            font-size: 1rem;
+            transition: all var(--transition-speed) ease;
+        }
+
+        .tab-btn:hover {
+            color: var(--text-main);
+            background: rgba(255, 255, 255, 0.05);
+        }
+
+        .tab-btn.active {
+            background: linear-gradient(135deg, var(--accent-cyan), var(--accent-purple));
+            color: white;
+            box-shadow: 0 4px 15px rgba(6, 182, 212, 0.3);
+        }
+
+        /* Tab Content */
+        .tab-content {
+            display: none;
+            animation: fadeIn 0.5s ease forwards;
+        }
+
+        .tab-content.active {
+            display: block;
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        /* Card styles */
+        .card {
+            background: var(--bg-card);
+            backdrop-filter: var(--glass-blur);
+            border: 1px solid var(--border-color);
+            border-radius: 16px;
+            padding: 2rem;
+            margin-bottom: 2rem;
+            position: relative;
+            overflow: hidden;
+            transition: transform var(--transition-speed) ease, box-shadow var(--transition-speed) ease;
+        }
+
+        .card:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.25);
+            border-color: rgba(6, 182, 212, 0.2);
+        }
+
+        .card-header {
+            display: flex;
+            align-items: center;
+            gap: 0.8rem;
+            margin-bottom: 1.5rem;
+            border-bottom: 1px solid var(--border-color);
+            padding-bottom: 1rem;
+        }
+
+        .card-icon {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            width: 40px;
+            height: 40px;
+            border-radius: 8px;
+            background: rgba(6, 182, 212, 0.1);
+            color: var(--accent-cyan);
+            font-size: 1.2rem;
+        }
+
+        .card h2 {
+            font-size: 1.5rem;
+            font-weight: 600;
+        }
+
+        /* Badge */
+        .badge {
+            background: rgba(255, 255, 255, 0.1);
+            padding: 0.25rem 0.6rem;
+            border-radius: 4px;
+            font-size: 0.8rem;
+            font-family: 'JetBrains Mono', monospace;
+            color: var(--accent-cyan);
+            border: 1px solid rgba(6, 182, 212, 0.2);
+        }
+
+        /* List styling */
+        ul {
+            list-style-position: inside;
+            margin-bottom: 1.5rem;
+        }
+
+        li {
+            margin-bottom: 0.8rem;
+            color: var(--text-muted);
+        }
+
+        li strong {
+            color: var(--text-main);
+        }
+
+        /* Code Block container */
+        .code-container {
+            position: relative;
+            margin: 1.5rem 0;
+            border-radius: 8px;
+            overflow: hidden;
+            border: 1px solid var(--border-color);
+        }
+
+        .code-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            background: #0d1117;
+            padding: 0.5rem 1rem;
+            border-bottom: 1px solid var(--border-color);
+        }
+
+        .code-lang {
+            font-family: 'JetBrains Mono', monospace;
+            font-size: 0.8rem;
+            color: var(--text-muted);
+        }
+
+        .copy-btn {
+            background: rgba(255, 255, 255, 0.05);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            padding: 0.3rem 0.8rem;
+            border-radius: 4px;
+            color: var(--text-main);
+            font-size: 0.8rem;
+            cursor: pointer;
+            transition: all var(--transition-speed);
+            font-family: 'Outfit', sans-serif;
+        }
+
+        .copy-btn:hover {
+            background: var(--accent-cyan);
+            color: #000;
+            font-weight: 500;
+        }
+
+        pre {
+            background: #090d16;
+            padding: 1.5rem;
+            overflow-x: auto;
+            font-family: 'JetBrains Mono', monospace;
+            font-size: 0.9rem;
+            color: #c9d1d9;
+        }
+
+        .keyword { color: #ff7b72; }
+        .function { color: #d2a6ff; }
+        .string { color: #a5d6ff; }
+        .comment { color: #8b949e; font-style: italic; }
+        .number { color: #79c0ff; }
+
+        /* Alert styles */
+        .alert {
+            padding: 1rem 1.5rem;
+            border-radius: 8px;
+            margin-bottom: 1.5rem;
+            border-left: 4px solid;
+            background: rgba(255, 255, 255, 0.02);
+        }
+
+        .alert-info {
+            border-left-color: var(--accent-cyan);
+            background: rgba(6, 182, 212, 0.05);
+            color: #e2e8f0;
+        }
+
+        .alert-warning {
+            border-left-color: var(--accent-amber);
+            background: rgba(245, 158, 11, 0.05);
+            color: #e2e8f0;
+        }
+
+        .alert-danger {
+            border-left-color: var(--accent-rose);
+            background: rgba(244, 63, 94, 0.05);
+            color: #e2e8f0;
+        }
+
+        /* Step layout */
+        .step-num {
+            display: inline-block;
+            width: 28px;
+            height: 28px;
+            border-radius: 50%;
+            background: linear-gradient(135deg, var(--accent-cyan), var(--accent-purple));
+            color: white;
+            text-align: center;
+            line-height: 28px;
+            font-weight: 700;
+            margin-right: 0.5rem;
+            font-size: 0.9rem;
+        }
+
+        /* Visual Table styling */
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin: 1.5rem 0;
+            font-size: 0.95rem;
+        }
+
+        th, td {
+            padding: 1rem;
+            text-align: left;
+            border-bottom: 1px solid var(--border-color);
+        }
+
+        th {
+            background-color: rgba(255, 255, 255, 0.03);
+            color: var(--text-main);
+            font-weight: 600;
+        }
+
+        td {
+            color: var(--text-muted);
+        }
+
+        tr:hover td {
+            color: var(--text-main);
+            background-color: rgba(255, 255, 255, 0.01);
+        }
+
+        .highlight-text {
+            color: var(--accent-cyan);
+            font-weight: 500;
+        }
+
+        .danger-text {
+            color: var(--accent-rose);
+            font-weight: 500;
+        }
+
+        /* Grid */
+        .grid-2 {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 1.5rem;
+        }
+
+        @media (max-width: 768px) {
+            .grid-2 {
+                grid-template-columns: 1fr;
+            }
+            h1 {
+                font-size: 2rem;
+            }
+        }
+    </style>
+</head>
+<body>
+
+    <header>
+        <h1>Day 10 Lab: Giải Đề Bài Hướng Dẫn</h1>
+        <div class="subtitle">Data Pipeline & Data Observability — Hướng dẫn học viên cách làm và nộp bài để đạt điểm tối đa (100/100)</div>
+    </header>
+
+    <main>
+        <!-- Navigation Tabs -->
+        <div class="tab-nav">
+            <button class="tab-btn active" onclick="switchTab(event, 'tab-overview')">Tổng Quan & Yêu Cầu</button>
+            <button class="tab-btn" onclick="switchTab(event, 'tab-steps')">Các Bước Thực Hiện</button>
+            <button class="tab-btn" onclick="switchTab(event, 'tab-solution')">Code Solution.py</button>
+            <button class="tab-btn" onclick="switchTab(event, 'tab-report')">Báo Cáo Stress Test</button>
+        </div>
+
+        <!-- TAB 1: OVERVIEW -->
+        <div id="tab-overview" class="tab-content active">
+            <div class="card">
+                <div class="card-header">
+                    <span class="card-icon">🎯</span>
+                    <h2>Mục Tiêu Bài Lab</h2>
+                </div>
+                <p>Bài lab này yêu cầu bạn xây dựng một <strong>ETL (Extract - Transform - Load) Pipeline</strong> tự động bằng Python để xử lý dữ liệu và đảm bảo <strong>Data Observability</strong> (Khả năng quan sát dữ liệu). Pipeline này sau đó sẽ được sử dụng để cung cấp dữ liệu sạch cho một <strong>AI Agent</strong> (RAG Simulation).</p>
+                <br>
+                <div class="alert alert-info">
+                    <strong>Tầm quan trọng:</strong> Khi dữ liệu đầu vào bị ô nhiễm (Garbage Data), AI Agent có thể đưa ra kết quả sai lệch hoặc thậm chí bị sập hệ thống (Choking). Việc xây dựng khâu kiểm chuẩn dữ liệu (Validation) là tối quan trọng để giữ an toàn cho các ứng dụng AI.
+                </div>
+            </div>
+
+            <div class="grid-2">
+                <div class="card">
+                    <div class="card-header">
+                        <span class="card-icon">📂</span>
+                        <h2>Cấu Trúc Thư Mục</h2>
+                    </div>
+                    <ul>
+                        <li><strong>solution.py</strong>: Chứa code ETL pipeline (bạn cần viết ở đây).</li>
+                        <li><strong>raw_data.json</strong>: Dữ liệu thô ban đầu cần trích xuất.</li>
+                        <li><strong>experiment_report.md</strong>: Báo cáo kết quả thử nghiệm Stress Test.</li>
+                        <li><strong>README.md</strong>: Thông tin cá nhân học viên và tóm tắt kết quả.</li>
+                        <li><strong>tests/test_autograder.py</strong>: Chứa các bài kiểm tra tự động của hệ thống (Do not modify).</li>
+                    </ul>
+                </div>
+
+                <div class="card">
+                    <div class="card-header">
+                        <span class="card-icon">📊</span>
+                        <h2>Thang Điểm Chi Tiết (100đ)</h2>
+                    </div>
+                    <table>
+                        <thead>
+                            <tr>
+                                <th>Tiêu chí</th>
+                                <th>Điểm số</th>
+                                <th>Mô tả</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr>
+                                <td>Script chạy không lỗi</td>
+                                <td class="highlight-text">20 điểm</td>
+                                <td>Chạy <code>solution.py</code> tạo ra file <code>processed_data.csv</code></td>
+                            </tr>
+                            <tr>
+                                <td>Validation dữ liệu</td>
+                                <td class="highlight-text">10 điểm</td>
+                                <td>Loại bỏ sản phẩm có giá &le; 0 hoặc category rỗng</td>
+                            </tr>
+                            <tr>
+                                <td>Transformation</td>
+                                <td class="highlight-text">10 điểm</td>
+                                <td>Tính <code>discounted_price</code> (gảm 10%) &amp; chuẩn hóa category dạng Title Case</td>
+                            </tr>
+                            <tr>
+                                <td>Logging / Observability</td>
+                                <td class="highlight-text">10 điểm</td>
+                                <td>In ra số lượng records giữ lại và số lượng bị loại</td>
+                            </tr>
+                            <tr>
+                                <td>Timestamp</td>
+                                <td class="highlight-text">10 điểm</td>
+                                <td>Thêm cột <code>processed_at</code> lưu thời gian xử lý dữ liệu</td>
+                            </tr>
+                            <tr>
+                                <td>Hoàn thành báo cáo</td>
+                                <td class="highlight-text">10 điểm</td>
+                                <td>Điền đầy đủ bảng so sánh trong <code>experiment_report.md</code></td>
+                            </tr>
+                            <tr>
+                                <td>Phân tích sâu sắc</td>
+                                <td class="highlight-text">10 điểm</td>
+                                <td>Phần nhận xét đạt tối thiểu 50 từ lý giải lỗi của Agent</td>
+                            </tr>
+                            <tr>
+                                <td>Cấu trúc file hợp lệ</td>
+                                <td class="highlight-text">10 điểm</td>
+                                <td>Có đầy đủ 4 file chính trong repo</td>
+                            </tr>
+                            <tr>
+                                <td>README đầy đủ</td>
+                                <td class="highlight-text">10 điểm</td>
+                                <td>Điền Student ID, cách chạy và kết quả tóm tắt</td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+
+        <!-- TAB 2: STEPS -->
+        <div id="tab-steps" class="tab-content">
+            <div class="card">
+                <h2>Các Bước Hoàn Thành Bài Lab</h2>
+                <br>
+                <div class="alert alert-info">
+                    Hãy đảm bảo môi trường ảo (Virtual Environment) đã được kích hoạt trước khi chạy lệnh.
+                </div>
+
+                <div style="margin-top: 1.5rem;">
+                    <h3><span class="step-num">1</span> Khởi tạo và cài đặt thư viện</h3>
+                    <p>Mở terminal trong thư mục bài lab và chạy các lệnh dưới đây:</p>
+                    <div class="code-container">
+                        <div class="code-header">
+                            <span class="code-lang">Bash</span>
+                            <button class="copy-btn" onclick="copyCode('setup-cmd')">Sao chép</button>
+                        </div>
+                        <pre id="setup-cmd"># Kích hoạt venv (macOS/Linux):
+source .venv/bin/activate
+
+# Kích hoạt venv (Windows PowerShell):
+# .\.venv\Scripts\activate
+
+# Cài đặt các thư viện phụ thuộc:
+pip install pandas pytest</pre>
+                    </div>
+                </div>
+
+                <div style="margin-top: 2rem;">
+                    <h3><span class="step-num">2</span> Cập nhật code trong file solution.py</h3>
+                    <p>Copy code mẫu hoàn chỉnh ở tab <strong>"Code Mẫu Solution.py"</strong> dán vào file <code>solution.py</code> của bạn.</p>
+                </div>
+
+                <div style="margin-top: 2rem;">
+                    <h3><span class="step-num">3</span> Chạy thử ETL Pipeline ở máy local</h3>
+                    <p>Sau khi cập nhật file solution, hãy chạy lệnh sau để kiểm tra xem script có chạy mượt mà và tạo ra file <code>processed_data.csv</code> hay không:</p>
+                    <div class="code-container">
+                        <div class="code-header">
+                            <span class="code-lang">Bash</span>
+                            <button class="copy-btn" onclick="copyCode('run-etl-cmd')">Sao chép</button>
+                        </div>
+                        <pre id="run-etl-cmd">python solution.py</pre>
+                    </div>
+                </div>
+
+                <div style="margin-top: 2rem;">
+                    <h3><span class="step-num">4</span> Tạo dữ liệu rác (Garbage Data) để làm Stress Test</h3>
+                    <p>Chạy file sinh dữ liệu độc hại để tạo ra file <code>garbage_data.csv</code>:</p>
+                    <div class="code-container">
+                        <div class="code-header">
+                            <span class="code-lang">Bash</span>
+                            <button class="copy-btn" onclick="copyCode('run-garbage-cmd')">Sao chép</button>
+                        </div>
+                        <pre id="run-garbage-cmd">python generate_garbage.py</pre>
+                    </div>
+                </div>
+
+                <div style="margin-top: 2rem;">
+                    <h3><span class="step-num">5</span> Chạy Agent Simulation và Ghi Lại Báo Cáo</h3>
+                    <p>Chạy mô phỏng Agent trả lời câu hỏi dựa trên 2 nguồn dữ liệu (Sạch vs Rác):</p>
+                    <div class="code-container">
+                        <div class="code-header">
+                            <span class="code-lang">Bash</span>
+                            <button class="copy-btn" onclick="copyCode('run-sim-cmd')">Sao chép</button>
+                        </div>
+                        <pre id="run-sim-cmd">python agent_simulation.py</pre>
+                    </div>
+                    <div class="alert alert-warning">
+                        <strong>Lưu ý về lỗi trong agent_simulation.py:</strong> Trong file mặc định, đường dẫn file sạch đang chỉ sai thư mục: <code>"../exercise-etl-automation/solution-code/processed_data.csv"</code>. Bạn hãy mở file <code>agent_simulation.py</code> và đổi nó thành <code>"processed_data.csv"</code> để chạy không bị lỗi!
+                    </div>
+                </div>
+
+                <div style="margin-top: 2rem;">
+                    <h3><span class="step-num">6</span> Điền báo cáo và cập nhật README</h3>
+                    <p>Điền kết quả quan sát được từ bước 5 vào <code>experiment_report.md</code> và điền thông tin cá nhân của bạn vào đầu file <code>README.md</code>.</p>
+                </div>
+
+                <div style="margin-top: 2rem;">
+                    <h3><span class="step-num">7</span> Chạy Unit Tests tại máy trước khi Push</h3>
+                    <p>Chạy pytest để xem trước bạn đã đạt bao nhiêu điểm từ hệ thống chấm điểm tự động:</p>
+                    <div class="code-container">
+                        <div class="code-header">
+                            <span class="code-lang">Bash</span>
+                            <button class="copy-btn" onclick="copyCode('run-test-cmd')">Sao chép</button>
+                        </div>
+                        <pre id="run-test-cmd">python -m pytest tests/test_autograder.py -v</pre>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- TAB 3: CODE SOLUTION.PY -->
+        <div id="tab-solution" class="tab-content">
+            <div class="card">
+                <div class="card-header">
+                    <span class="card-icon">🐍</span>
+                    <h2>Mã Nguồn Hoàn Chỉnh: solution.py</h2>
+                </div>
+                <p>Mã nguồn dưới đây giải quyết triệt để 4 Tasks của Pipeline bao gồm: Đọc dữ liệu JSON, Validate loại bỏ giá trị âm và category rỗng, Transform định dạng dạng Title Case cùng với cột thời gian xử lý, và Load lưu kết quả dưới định dạng CSV.</p>
+                <br>
+                <div class="alert alert-warning">
+                    <strong>Đừng quên thay đổi:</strong> Hãy sửa lại <code>AI20K-XXXX</code> ở đầu file thành Mã số sinh viên thực tế của bạn trước khi nộp bài.
+                </div>
+
+                <div class="code-container">
+                    <div class="code-header">
+                        <span class="code-lang">solution.py</span>
+                        <button class="copy-btn" onclick="copyCode('solution-code')">Sao chép mã nguồn</button>
+                    </div>
+                    <pre id="solution-code"><span class="comment">"""
+==============================================================
+Day 10 Lab: Build Your First Automated ETL Pipeline
+==============================================================
+Student ID: AI20K-XXXX  (&lt;-- Hãy thay bằng mã số sinh viên của bạn)
+Name: Tên của bạn
+
+Nhiệm vụ:
+   1. Extract:   Đọc dữ liệu từ file JSON
+   2. Validate:  Kiểm tra & loại bỏ dữ liệu không hợp lệ
+   3. Transform: Chuẩn hóa category + tính giá giảm 10%
+   4. Load:      Lưu kết quả ra file CSV
+==============================================================
+"""</span>
+
+<span class="keyword">import</span> json
+<span class="keyword">import</span> pandas <span class="keyword">as</span> pd
+<span class="keyword">import</span> os
+<span class="keyword">import</span> datetime
+
+<span class="comment"># --- CONFIGURATION ---</span>
+SOURCE_FILE = <span class="string">'raw_data.json'</span>
+OUTPUT_FILE = <span class="string">'processed_data.csv'</span>
+
+
+<span class="keyword">def</span> <span class="function">extract</span>(file_path):
+    <span class="keyword">print</span>(<span class="string">f"Extracting data from {file_path}..."</span>)
+    <span class="keyword">try</span>:
+        <span class="keyword">with</span> <span class="function">open</span>(file_path, <span class="string">'r'</span>, encoding=<span class="string">'utf-8'</span>) <span class="keyword">as</span> f:
+            data = json.load(f)
+        <span class="keyword">return</span> data
+    <span class="keyword">except</span> FileNotFoundError:
+        <span class="keyword">print</span>(<span class="string">f"Error: File {file_path} not found."</span>)
+        <span class="keyword">return</span> []
+
+
+<span class="keyword">def</span> <span class="function">validate</span>(data):
+    valid_records = []
+    error_count = 0
+
+    <span class="keyword">for</span> record <span class="keyword">in</span> data:
+        price = record.get(<span class="string">'price'</span>)
+        category = record.get(<span class="string">'category'</span>)
+
+        <span class="comment"># Kiểm tra giá phải hợp lệ (> 0)</span>
+        is_valid_price = <span class="keyword">False</span>
+        <span class="keyword">try</span>:
+            <span class="keyword">if</span> price <span class="keyword">is not None and</span> <span class="function">float</span>(price) > <span class="number">0</span>:
+                is_valid_price = <span class="keyword">True</span>
+        <span class="keyword">except</span> (ValueError, TypeError):
+            <span class="keyword">pass</span>
+
+        <span class="comment"># Kiểm tra category không rỗng</span>
+        is_valid_category = <span class="keyword">False</span>
+        <span class="keyword">if</span> category <span class="keyword">is not None and</span> <span class="function">str</span>(category).strip() != <span class="string">''</span>:
+            is_valid_category = <span class="keyword">True</span>
+
+        <span class="keyword">if</span> is_valid_price <span class="keyword">and</span> is_valid_category:
+            valid_records.append(record)
+        <span class="keyword">else</span>:
+            error_count += <span class="number">1</span>
+
+    <span class="keyword">print</span>(<span class="string">f"Validation complete. {len(valid_records)} records kept, {error_count} records dropped."</span>)
+    <span class="keyword">return</span> valid_records
+
+
+<span class="keyword">def</span> <span class="function">transform</span>(data):
+    <span class="keyword">if not</span> data:
+        <span class="keyword">return</span> pd.DataFrame()
+
+    df = pd.DataFrame(data)
+    
+    <span class="comment"># Tinh discounted_price = price * 0.9 (giảm 10%)</span>
+    df[<span class="string">'discounted_price'</span>] = df[<span class="string">'price'</span>] * <span class="number">0.9</span>
+    
+    <span class="comment"># Chuẩn hóa category thanh Title Case</span>
+    df[<span class="string">'category'</span>] = df[<span class="string">'category'</span>].astype(<span class="function">str</span>).str.title()
+    
+    <span class="comment"># Thêm cột processed_at = timestamp hiện tại</span>
+    df[<span class="string">'processed_at'</span>] = datetime.datetime.now().isoformat()
+    
+    <span class="keyword">return</span> df
+
+
+<span class="keyword">def</span> <span class="function">load</span>(df, output_path):
+    df.to_csv(output_path, index=<span class="keyword">False</span>)
+    <span class="keyword">print</span>(<span class="string">f"Data saved to {output_path}"</span>)
+
+
+<span class="comment"># ============================================================
+# MAIN PIPELINE
+# ============================================================</span>
+<span class="keyword">if</span> __name__ == <span class="string">"__main__"</span>:
+    <span class="keyword">print</span>(<span class="string">"="</span> * <span class="number">50</span>)
+    <span class="keyword">print</span>(<span class="string">"ETL Pipeline Started..."</span>)
+    <span class="keyword">print</span>(<span class="string">"="</span> * <span class="number">50</span>)
+
+    <span class="comment"># 1. Extract</span>
+    raw_data = extract(SOURCE_FILE)
+
+    <span class="keyword">if</span> raw_data:
+        <span class="comment"># 2. Validate</span>
+        clean_data = validate(raw_data)
+
+        <span class="comment"># 3. Transform</span>
+        final_df = transform(clean_data)
+
+        <span class="comment"># 4. Load</span>
+        <span class="keyword">if</span> final_df <span class="keyword">is not None</span>:
+            load(final_df, OUTPUT_FILE)
+            <span class="keyword">print</span>(<span class="string">f"\nPipeline completed! {len(final_df)} records saved."</span>)
+        <span class="keyword">else</span>:
+            <span class="keyword">print</span>(<span class="string">"\nTransform returned None. Check your transform() function."</span>)
+    <span class="keyword">else</span>:
+        <span class="keyword">print</span>(<span class="string">"\nPipeline aborted: No data extracted."</span>)</pre>
+                </div>
+            </div>
+        </div>
+
+        <!-- TAB 4: REPORT -->
+        <div id="tab-report" class="tab-content">
+            <div class="card">
+                <div class="card-header">
+                    <span class="card-icon">📝</span>
+                    <h2>Hướng Dẫn Viết Báo Cáo Thi Nghiệm (experiment_report.md)</h2>
+                </div>
+                <p>Để đạt được điểm tối đa cho phần <strong>Stress Test Report</strong> (20 điểm), bạn cần điền đầy đủ bảng so sánh kết quả và viết một phân tích chi tiết dài ít nhất 50 từ.</p>
+
+                <div style="margin-top: 1.5rem;">
+                    <h3>Bảng Kết Quả Thử Nghiệm Gợi Ý:</h3>
+                    <table>
+                        <thead>
+                            <tr>
+                                <th>Scenario</th>
+                                <th>Agent Response</th>
+                                <th>Accuracy (1-10)</th>
+                                <th>Notes</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr>
+                                <td class="highlight-text">Clean Data (processed_data.csv)</td>
+                                <td>"Agent: Based on my data, the best choice is Laptop at $1200."</td>
+                                <td>10/10</td>
+                                <td>Dữ liệu được chuẩn hóa, Agent tìm kiếm và tính toán chính xác sản phẩm đắt nhất thuộc ngành Electronics.</td>
+                            </tr>
+                            <tr>
+                                <td class="danger-text">Garbage Data (garbage_data.csv)</td>
+                                <td>"Agent Error: I'm choking on the data! (Type error or comparison failure)"</td>
+                                <td>1/10</td>
+                                <td>Agent bị crash khi đọc file do lỗi so sánh kiểu dữ liệu của trường "price" (giữa string 'ten dollars' và các số khác).</td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+
+                <div style="margin-top: 2rem;">
+                    <h3>Đoạn Phân Tích Mẫu (Đạt tiêu chuẩn &gt; 50 từ):</h3>
+                    <div class="alert alert-info">
+                        <strong>Nội dung phân tích:</strong> Bạn có thể copy nội dung sau để điền vào mục <em>"2. Phan tich & nhan xet"</em> trong file <code>experiment_report.md</code>:
+                    </div>
+                    <div class="code-container">
+                        <div class="code-header">
+                            <span class="code-lang">Báo Cáo Nhận Xét</span>
+                            <button class="copy-btn" onclick="copyCode('analysis-text')">Sao chép nhận xét</button>
+                        </div>
+                        <pre id="analysis-text">Khi sử dụng Garbage Data, AI Agent đã gặp lỗi nghiêm trọng và không thể đưa ra câu trả lời đúng. Nguyên nhân chính là do sự hiện diện của dữ liệu không hợp lệ như chuỗi ký tự "ten dollars" trong cột giá (price) vốn phải là kiểu số. Điều này khiến cho hàm so sánh `idxmax()` của thư viện Pandas bị lỗi logic so sánh giữa chuỗi ký tự và số (TypeError), dẫn đến việc chương trình bị dừng đột ngột (choke). Ngoài ra, các bản ghi bị lặp ID (Duplicate IDs) như Laptop và Banana cùng chung ID 1, hoặc các bản ghi rỗng (null values) như Ghost Item cũng gây nhiễu loạn thông tin khiến mô hình AI không thể suy luận chính xác, từ đó làm giảm độ tin cậy của Agent.</pre>
+                    </div>
+                </div>
+
+                <div style="margin-top: 2rem;">
+                    <h3>Mục Kết Luận: Quality Data > Quality Prompt?</h3>
+                    <p>Điền vào mục <em>"3. Ket luan"</em>:</p>
+                    <div class="code-container">
+                        <div class="code-header">
+                            <span class="code-lang">Kết Luận</span>
+                            <button class="copy-btn" onclick="copyCode('conclusion-text')">Sao chép kết luận</button>
+                        </div>
+                        <pre id="conclusion-text">Tôi hoàn toàn đồng ý với nhận định "Quality Data > Quality Prompt". Dù prompt có được thiết kế tối ưu hay chi tiết đến đâu, nếu dữ liệu nền tảng (knowledge base) bị ô nhiễm, sai lệch kiểu dữ liệu hoặc chứa quá nhiều giá trị rỗng, AI Agent vẫn sẽ tính toán sai lệch hoặc gặp lỗi crash hệ thống. Dữ liệu chất lượng cao là nền tảng cốt lõi cho sự chính xác của các ứng dụng AI Agent.</pre>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </main>
+
+    <script>
+        function switchTab(evt, tabId) {
+            // Hide all tab content
+            const tabContents = document.getElementsByClassName("tab-content");
+            for (let i = 0; i < tabContents.length; i++) {
+                tabContents[i].classList.remove("active");
+            }
+
+            // Remove active class from all tab buttons
+            const tabButtons = document.getElementsByClassName("tab-btn");
+            for (let i = 0; i < tabButtons.length; i++) {
+                tabButtons[i].classList.remove("active");
+            }
+
+            // Show current tab, and add active class to button
+            document.getElementById(tabId).classList.add("active");
+            evt.currentTarget.classList.add("active");
+        }
+
+        function copyCode(elementId) {
+            const codeText = document.getElementById(elementId).innerText;
+            navigator.clipboard.writeText(codeText).then(() => {
+                const btn = document.querySelector(`button[onclick="copyCode('${elementId}')"]`);
+                const originalText = btn.innerText;
+                btn.innerText = "Đã sao chép!";
+                btn.style.background = "var(--accent-green)";
+                btn.style.color = "#000";
+                
+                setTimeout(() => {
+                    btn.innerText = originalText;
+                    btn.style.background = "";
+                    btn.style.color = "";
+                }, 2000);
+            }).catch(err => {
+                console.error('Không thể sao chép code: ', err);
+            });
+        }
+    </script>
+</body>
+</html>
